@@ -1,0 +1,11 @@
+{
+  "name": "motion-detector",
+  "version": "1.0.0",
+  "scripts": {
+    "create-css": "npx tailwindcss -i ./static/input.css -o ./static/main.css --watch"
+  },
+  "license": "ISC",
+  "devDependencies": {
+    "tailwindcss": "^3.4.6"
+  }
+}

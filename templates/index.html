@@ -1,0 +1,34 @@
+<html>
+  <head>
+    <link href="{{url_for('static',filename='main.css')}}" rel="stylesheet" />
+    <script src="{{url_for('static',filename='main.js')}}" defer></script>
+  </head>
+  <body>
+    <div class="p-3 flex justify-evenly h-full w-full">
+      <div>
+        <h3 class="font-bold mb-3">Raw stream</h3>
+        <canvas id="raw-stream" class="w-[40rem] mb-3"></canvas>
+        <button
+          type="button"
+          class="bg-sky-500 px-4 py-2 text-white font-bold rounded-lg select-none"
+        >
+          Draw zone
+        </button>
+        <button
+          type="button"
+          class="bg-orange-400 px-4 py-2 text-white font-bold rounded-lg select-none"
+        >
+          Draw min detection area
+        </button>
+      </div>
+      <div>
+        <h3 class="font-bold mb-3">Processed stream</h3>
+        <img
+          src="/stream/processed"
+          id="processed-stream"
+          class="w-[40rem] mb-3"
+        />
+      </div>
+    </div>
+  </body>
+</html>
