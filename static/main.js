@@ -36,9 +36,13 @@ function renderRawStream() {
 
 function setupZoneDrawingEvents(canvasElement) {
   let mouseDown = false;
+  let oldZoneObject = {};
+
   canvasElement.addEventListener("mousedown", (evt) => {
     mouseDown = true;
     var rect = canvasElement.getBoundingClientRect();
+
+    oldZoneObject = { ...zoneRectangle };
 
     zoneRectangle.topLeft = convertHtmlPosToCanvasPos(
       rawStreamCanvas,
@@ -59,7 +63,18 @@ function setupZoneDrawingEvents(canvasElement) {
   });
 
   canvasElement.addEventListener("mouseup", (evt) => {
-    updateZone(zoneRectangle);
+    // Don't update the zone if the bounding box for the zone is the same
+    // or if the zone is undefined
+    if (zoneRectangle.topLeft && zoneRectangle.bottomRight) {
+      const { x: tlX, y: tlY } = zoneRectangle.topLeft;
+      const { x: brX, y: brY } = zoneRectangle.bottomRight;
+
+      if (Math.abs(tlX - brX) > 0 && Math.abs(tlY - brY) > 0) {
+        updateZone(zoneRectangle);
+      }
+    } else {
+      zoneRectangle = oldZoneObject;
+    }
 
     mouseDown = false;
   });
