@@ -5,13 +5,17 @@ from src.image_encoder import encode_image_for_web
 class VideoStream:
     def __init__(self, rtsp_url):
         self.stream = freshest_frame.FreshestFrame(cv2.VideoCapture(rtsp_url))
+        self.current_frame = None
 
-    def fetch_image(self):
+    def read_next_frame(self):
         success, frame = self.stream.read()
-        if not success:
-            return (False, None) 
-        else:
-            return encode_image_for_web(frame)
+        if success:
+            self.current_frame = frame
+            return success, frame
+        return False, None
+
+    def jpeg(self):
+        return encode_image_for_web(self.current_frame)
 
     def release(self):
         self.stream.release()

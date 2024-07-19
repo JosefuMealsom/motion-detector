@@ -7,22 +7,24 @@ THRESH = 50
 ASSIGN_VALUE = 255
 ALPHA = 0.1
 
-MIN_AREA_ON_THRESHOLD = 8000
+MIN_AREA_ON_THRESHOLD = 2000
 MIN_AREA_OFF_THRESHOLD = 5000
 MIN_AREA_BG_UPDATE = 2000
 
 
 class AdaptiveBGSubtractor:
-    def __init__(self, video_stream):
-        self.video_stream = video_stream
+    def __init__(self):
         self.is_background_set = False
         self.background = None
+        self.cropped_image = None
+        self.processed_image = None
         self.in_frame = False
 
     def load_config(self):
         f = open("zone-position.json", "r")
         self.zone_config = json.loads(f.read())
         f.close()
+        self.is_background_set = False
 
 
     def update_background(self, current_frame, alpha):
@@ -30,14 +32,14 @@ class AdaptiveBGSubtractor:
         bg = np.uint8(bg)  
         return bg
     
-    def fetch_image(self):
-        success, frame = self.video_stream.stream.read()
+    def process(self, frame):
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
         if self.zone_config:
             tl = self.zone_config['topLeft']
             br = self.zone_config['bottomRight']
-            frame = frame[tl["y"]:br["y"], tl["x"]:br["x"]] 
+            frame = frame[tl["y"]:br["y"], tl["x"]:br["x"]]
+            self.cropped_image = frame
 
         # scale_percent = 25
         # width = int(frame.shape[1] * scale_percent/100)
@@ -52,14 +54,13 @@ class AdaptiveBGSubtractor:
             return False, None
         else:
             diff = cv2.absdiff(self.background, frame)
-            
             ret, motion_mask = cv2.threshold(diff, THRESH, ASSIGN_VALUE, cv2.THRESH_BINARY)
             motion_mask = cv2.erode(motion_mask, None, iterations = 2)
             motion_mask = cv2.dilate(motion_mask, None, iterations = 5)
             motion_mask = cv2.GaussianBlur(motion_mask, (15,15), 0)
             ret, motion_mask = cv2.threshold(motion_mask, THRESH, ASSIGN_VALUE, cv2.THRESH_BINARY)
             contours, _ = cv2.findContours(motion_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_TC89_L1)
-            
+
             detections = []
 
             update_bg = True
@@ -85,5 +86,11 @@ class AdaptiveBGSubtractor:
             # of the user in the zone.
             if not self.in_frame:
                 self.background = self.update_background(frame, alpha = ALPHA)
-            
-            return encode_image_for_web(motion_mask) 
+
+            self.processed_image = motion_mask
+
+    def cropped_jpeg(self):
+        return encode_image_for_web(self.cropped_image)
+
+    def processed_jpeg(self):
+        return encode_image_for_web(self.processed_image)

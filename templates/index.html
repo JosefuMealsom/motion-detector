@@ -4,8 +4,8 @@
     <script src="{{url_for('static',filename='main.js')}}" defer></script>
   </head>
   <body>
-    <div class="p-3 flex justify-evenly h-full w-full">
-      <div>
+    <div class="p-3 justify-evenly w-full">
+      <div class="mb-3">
         <h3 class="font-bold mb-3">Raw stream</h3>
         <canvas id="raw-stream" class="w-[40rem] mb-3"></canvas>
         <button
@@ -21,13 +21,23 @@
           Draw min detection area
         </button>
       </div>
-      <div>
-        <h3 class="font-bold mb-3">Processed stream</h3>
-        <img
-          src="/stream/processed"
-          id="processed-stream"
-          class="w-[40rem] mb-3"
-        />
+      <div class="flex h-full">
+        <div class="w-[20rem] h-[20rem]">
+          <h3 class="font-bold mb-3">Cropped stream</h3>
+          <img
+            src="/stream/cropped"
+            id="cropped-stream"
+            class="h-full w-full object-contain mb-3"
+          />
+        </div>
+        <div class="w-[20rem] h-[20rem]">
+          <h3 class="font-bold mb-3">Processed stream</h3>
+          <img
+            src="/stream/processed"
+            id="cropped-stream"
+            class="w-full h-full object-contain mb-3"
+          />
+        </div>
       </div>
     </div>
   </body>

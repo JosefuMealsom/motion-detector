@@ -1,14 +1,29 @@
 from src.video_stream import VideoStream
 from src.adaptive_bg_subtraction import AdaptiveBGSubtractor
 from flask import Flask, render_template, Response, request
+from threading import Thread
 
 app = Flask(__name__)
 video_stream = VideoStream("rtsp://admin:P@ssw0rd@192.168.1.64:554/Streaming/channels/101")
-zone_detector = AdaptiveBGSubtractor(video_stream)
+zone_detector = AdaptiveBGSubtractor()
+
+def process_stream():
+    zone_detector.load_config()
+    while True:
+        success, frame = video_stream.read_next_frame()
+        if not success: continue
+        zone_detector.process(frame)
+
+process_thread = Thread(target=process_stream)
+process_thread.start()
 
 @app.route("/stream/raw")
 def stream_raw():
     return Response(generate_raw_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+@app.route("/stream/cropped")
+def stream_cropped():
+    return Response(generate_cropped_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route("/stream/processed")
 def stream_processed():
@@ -21,13 +36,19 @@ def index():
 
 def generate_raw_frames():
     while True:
-       success, image = video_stream.fetch_image()
+       success, image = video_stream.jpeg()
        if success:
            yield image
            
+def generate_cropped_frames():
+    while True:
+       success, image = zone_detector.cropped_jpeg()
+       if success:
+           yield image
+
 def generate_processed_frames():
     while True:
-       success, image = zone_detector.fetch_image()
+       success, image = zone_detector.processed_jpeg()
        if success:
            yield image
 
