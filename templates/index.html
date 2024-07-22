@@ -26,13 +26,26 @@
         >
           Draw min detection area
         </button>
+        <button
+          id="draw-min-bg-update-area"
+          type="button"
+          class="bg-sky-500 px-4 py-2 text-white font-bold rounded-lg select-none [&.active]:bg-yellow-400"
+        >
+          Draw min bg update area
+        </button>
+        <button
+          id="reset-bg"
+          type="button"
+          class="bg-sky-500 px-4 py-2 text-white font-bold rounded-lg select-none [&.active]:bg-yellow-400"
+        >
+          Reset BG
+        </button>
       </div>
       <div class="flex h-full">
         <div class="w-[20rem] h-[20rem]">
           <h3 class="font-bold mb-3">Cropped stream</h3>
           <img
             src="/stream/cropped"
-            id="cropped-stream"
             class="h-full w-full object-contain mb-3"
           />
         </div>
@@ -40,7 +53,13 @@
           <h3 class="font-bold mb-3">Processed stream</h3>
           <img
             src="/stream/processed"
-            id="cropped-stream"
+            class="w-full h-full object-contain mb-3"
+          />
+        </div>
+        <div class="w-[20rem] h-[20rem]">
+          <h3 class="font-bold mb-3">Background stream</h3>
+          <img
+            src="/stream/background"
             class="w-full h-full object-contain mb-3"
           />
         </div>
