@@ -3,13 +3,13 @@ import numpy as np
 from src.image_encoder import encode_image_for_web
 import json
 
-THRESH = 50
+THRESH = 20
 ASSIGN_VALUE = 255
 ALPHA = 0.1
 
-MIN_AREA_ON_THRESHOLD = 2000
+MIN_AREA_ON_THRESHOLD = 8000
 MIN_AREA_OFF_THRESHOLD = 5000
-MIN_AREA_BG_UPDATE = 2000
+MIN_AREA_BG_UPDATE = 200
 
 
 class AdaptiveBGSubtractor:
@@ -19,12 +19,16 @@ class AdaptiveBGSubtractor:
         self.cropped_image = None
         self.processed_image = None
         self.in_frame = False
+        self.zone_config = None
 
     def load_config(self):
-        f = open("zone-position.json", "r")
-        self.zone_config = json.loads(f.read())
-        f.close()
-        self.is_background_set = False
+        try:
+            f = open("zone.json", "r")
+            self.zone_config = json.loads(f.read())
+            f.close()
+            self.is_background_set = False
+        except:
+            print("Zone file not found") 
 
 
     def update_background(self, current_frame, alpha):
@@ -35,10 +39,12 @@ class AdaptiveBGSubtractor:
     def process(self, frame):
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-        if self.zone_config:
-            tl = self.zone_config['topLeft']
-            br = self.zone_config['bottomRight']
+        if self.zone_config is not None:
+            tl = self.zone_config["zoneArea"]["topLeft"]
+            br = self.zone_config["zoneArea"]["bottomRight"]
             frame = frame[tl["y"]:br["y"], tl["x"]:br["x"]]
+            MIN_AREA_ON_THRESHOLD = self.zone_config["minArea"]
+            MIN_AREA_OFF_THRESHOLD = MIN_AREA_ON_THRESHOLD * 0.8
             self.cropped_image = frame
 
         # scale_percent = 25

@@ -2,6 +2,7 @@ from src.video_stream import VideoStream
 from src.adaptive_bg_subtraction import AdaptiveBGSubtractor
 from flask import Flask, render_template, Response, request
 from threading import Thread
+import json
 
 app = Flask(__name__)
 video_stream = VideoStream("rtsp://admin:P@ssw0rd@192.168.1.64:554/Streaming/channels/101")
@@ -54,7 +55,19 @@ def generate_processed_frames():
 
 @app.route("/zone", methods = ['POST'])
 def save_zone():
-    f = open("zone-position.json", "w")
+    f = open("zone.json", "w+")
+    zone_config = json.loads(f.read())
+    zone_config["zoneArea"] = str(request.json);  
+    f.write(str(request.json).replace("'", "\""))
+    f.close()
+    zone_detector.load_config()
+    return Response("SUCCESS")
+
+@app.route("/zone/min-area", methods = ['POST'])
+def save_min_area():
+    f = open("zone.json", "w+")
+    zone_config = json.loads(f.read())
+    zone_config["minArea"] = str(request.json);  
     f.write(str(request.json).replace("'", "\""))
     f.close()
     zone_detector.load_config()

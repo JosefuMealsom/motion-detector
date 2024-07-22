@@ -14,17 +14,31 @@ export class ZoneDrawer {
       this.zone = zoneConfig;
       this.oldZoneObject = zoneConfig;
     }
-    this.addEvents();
   }
 
   addEvents() {
-    this.canvasElement.addEventListener("mousedown", (e) =>
-      this.onMouseDown(e)
+    this.abortController = new AbortController();
+    const { signal } = this.abortController;
+    this.canvasElement.addEventListener(
+      "mousedown",
+      (e) => this.onMouseDown(e),
+      { signal }
     );
-    this.canvasElement.addEventListener("mousemove", (e) =>
-      this.onMouseMove(e)
+    this.canvasElement.addEventListener(
+      "mousemove",
+      (e) => this.onMouseMove(e),
+      { signal }
     );
-    this.canvasElement.addEventListener("mouseup", (e) => this.onMouseUp(e));
+    this.canvasElement.addEventListener("mouseup", (e) => this.onMouseUp(e), {
+      signal,
+    });
+  }
+
+  removeEvents() {
+    if (!this.abortController) return;
+
+    this.abortController.abort();
+    this.abortController = undefined;
   }
 
   onMouseDown(evt) {
@@ -52,7 +66,7 @@ export class ZoneDrawer {
 
   onMouseUp(evt) {
     // Don't update the zone if the bounding box for the zone is the same
-    // or if the zone is undefined
+    // or if topLeft or bottomRight are undefined
     if (this.zone.topLeft && this.zone.bottomRight) {
       const { x: tlX, y: tlY } = this.zone.topLeft;
       const { x: brX, y: brY } = this.zone.bottomRight;
