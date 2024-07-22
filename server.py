@@ -5,7 +5,8 @@ from threading import Thread
 from src.config_loader import load_config, save_config
 
 app = Flask(__name__)
-video_stream = VideoStream("rtsp://admin:P@ssw0rd@192.168.1.64:554/Streaming/channels/101")
+#video_stream = VideoStream("rtsp://admin:P@ssw0rd@192.168.1.64:554/Streaming/channels/101")
+video_stream = VideoStream("test-output.mp4")
 zone_detector = AdaptiveBGSubtractor()
 
 def process_stream():

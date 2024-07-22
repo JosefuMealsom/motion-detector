@@ -92,6 +92,7 @@ class AdaptiveBGSubtractor:
                 cv2.rectangle(motion_mask, (box[0], box[1]), (box[2], box[3]), ( 255, 0, 0), 2 )
 
             if len(detections) > 0 and not self.in_frame:
+                print("PLAY AUDIO")
                 self.in_frame = True
             elif len(detections) == 0 and self.in_frame:
                 self.in_frame = False
