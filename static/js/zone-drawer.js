@@ -9,6 +9,7 @@ export class ZoneDrawer {
 
   constructor(canvasElement, zoneConfig) {
     this.canvasElement = canvasElement;
+    this.context = canvasElement.getContext("2d");
 
     if (zoneConfig) {
       this.zone = zoneConfig;
@@ -97,5 +98,21 @@ export class ZoneDrawer {
 
   onZoneUpdate(callback) {
     this.onZoneUpdateCallback = callback;
+  }
+
+  render(color) {
+    if (this.zone.topLeft && this.zone.bottomRight) {
+      const rectWidth = this.zone.bottomRight.x - this.zone.topLeft.x;
+      const rectHeight = this.zone.bottomRight.y - this.zone.topLeft.y;
+
+      this.context.strokeStyle = color;
+      this.context.lineWidth = 10;
+      this.context.strokeRect(
+        this.zone.topLeft.x,
+        this.zone.topLeft.y,
+        rectWidth,
+        rectHeight
+      );
+    }
   }
 }
