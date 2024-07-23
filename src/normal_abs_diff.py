@@ -19,6 +19,10 @@ class NormalAbsDiff:
     in_frame = False
     zone_config = {}
     time_in_zone = 0
+    on_detect_callback = None
+
+    def add_detect_callback(self, on_detect_callback):
+        self.on_detect_callback = on_detect_callback
 
     def load_config(self, config):
         self.zone_config = config
@@ -82,7 +86,8 @@ class NormalAbsDiff:
                 self.time_in_zone = 0
 
             if not self.in_frame and self.time_in_zone > self.MIN_ZONE_FRAMES: 
-                print("PLAY AUDIO")
+                if self.on_detect_callback is not None:
+                    self.on_detect_callback()
                 self.in_frame = True
             elif len(detections) == 0 and self.in_frame:
                 self.in_frame = False

@@ -4,17 +4,25 @@ from src.normal_abs_diff import NormalAbsDiff
 from flask import Flask, render_template, Response, request
 from threading import Thread
 from src.config_loader import load_config, save_config
+from flask_socketio import SocketIO
 
 app = Flask(__name__)
+socketio = SocketIO(app)
 #video_stream = VideoStream("rtsp://admin:P@ssw0rd@192.168.1.64:554/Streaming/channels/101")
 video_stream = VideoStream("test-output.mp4")
+    
+def on_detect():
+    socketio.emit("detected")
+
 zone_detector = NormalAbsDiff()
 
-def process_stream():
-    result, config = load_config()
-    if result:
-        zone_detector.load_config(config)
+result, config = load_config()
+if result:
+    zone_detector.load_config(config)
 
+zone_detector.add_detect_callback(on_detect)
+
+def process_stream():
     while True:
         success, frame = video_stream.read_next_frame()
         if not success: continue
@@ -112,8 +120,7 @@ def reset_zone():
     zone_detector.reset_bg()
     return {"status": "success"}, 200
 
-
 if __name__ == "__main__":
-    app.run(debug=False)
+    socketio.run(app, debug=False)
 
 video_stream.release()
