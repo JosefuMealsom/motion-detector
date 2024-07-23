@@ -4,13 +4,13 @@ import numpy as np
 from src.image_encoder import encode_image_for_web
 
 class NormalAbsDiff:
-    THRESH = 30
+    THRESH = 20
     ASSIGN_VALUE = 255
     ALPHA = 0.1
 
     MIN_AREA_ON_THRESHOLD = 8000
     MIN_AREA_OFF_THRESHOLD = 5000
-    MIN_ZONE_FRAMES = 12
+    MIN_ZONE_FRAMES = 20
 
     is_background_set = False
     background = None
@@ -87,10 +87,11 @@ class NormalAbsDiff:
 
             if not self.in_frame and self.time_in_zone > self.MIN_ZONE_FRAMES: 
                 if self.on_detect_callback is not None:
-                    self.on_detect_callback()
+                    self.on_detect_callback(True)
                 self.in_frame = True
             elif len(detections) == 0 and self.in_frame:
                 self.in_frame = False
+                self.on_detect_callback(False)
 
             self.update_background(frame, 0.001)
             self.processed_image = motion_mask

@@ -1,6 +1,9 @@
 const socket = io();
-socket.on("connect", function () {
-  socket.on("detected", () => {
-    console.log("Detected");
-  });
-});
+
+export function onEnterZone(callback) {
+  socket.on("entered", callback);
+}
+
+export function onLeftZone(callback) {
+  socket.on("left", callback);
+}

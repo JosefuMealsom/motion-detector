@@ -11,8 +11,12 @@ socketio = SocketIO(app)
 #video_stream = VideoStream("rtsp://admin:P@ssw0rd@192.168.1.64:554/Streaming/channels/101")
 video_stream = VideoStream("test-output.mp4")
     
-def on_detect():
-    socketio.emit("detected")
+def on_detect(entered):
+    if entered:
+        socketio.emit("entered")
+    else:
+        socketio.emit("left")
+
 
 zone_detector = NormalAbsDiff()
 

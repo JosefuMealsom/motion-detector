@@ -1,6 +1,7 @@
 import { ZoneDrawer } from "./zone-drawer.js";
 import { updateConfigFileOnServer } from "./server-update.service.js";
 import { loadConfigForKey, saveConfigForKey } from "./storage.service.js";
+import { onEnterZone, onLeftZone } from "./websocket.service.js";
 
 const rawStreamCanvas = document.getElementById("raw-stream");
 const rawStreamContext = rawStreamCanvas.getContext("2d");
@@ -100,10 +101,20 @@ drawMinBgAreaButton.addEventListener("click", () => {
   drawMinBgAreaButton.classList.add("active");
 });
 
+let zoneColor = "#FF0000";
+
+onEnterZone(() => {
+  zoneColor = "#FFFFFF";
+});
+
+onLeftZone(() => {
+  zoneColor = "#FF0000";
+});
+
 function renderRawStream() {
   rawStreamContext.drawImage(img, 0, 0);
 
-  drawZone(zoneAreaDrawer, "#FF0000");
+  drawZone(zoneAreaDrawer, zoneColor);
   drawZone(minAreaDrawer, "#00FF00");
   drawZone(minBgUpdateDrawer, "#0000FF");
 
