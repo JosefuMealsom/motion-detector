@@ -1,16 +1,15 @@
+
 import cv2
 import numpy as np
 from src.image_encoder import encode_image_for_web
 
-class AdaptiveBGSubtractor:
+class NormalAbsDiff:
     THRESH = 30
     ASSIGN_VALUE = 255
     ALPHA = 0.1
 
     MIN_AREA_ON_THRESHOLD = 8000
     MIN_AREA_OFF_THRESHOLD = 5000
-    MIN_AREA_BG_UPDATE = None
-    MAX_FRAMES_BG = 90
     MIN_ZONE_FRAMES = 12
 
     is_background_set = False
@@ -19,8 +18,6 @@ class AdaptiveBGSubtractor:
     processed_image = None
     in_frame = False
     zone_config = {}
-    bg_needs_update = False
-    current_bg_update_frame = 0
     time_in_zone = 0
 
     def load_config(self, config):
@@ -35,30 +32,22 @@ class AdaptiveBGSubtractor:
     def process(self, frame):
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
+        # scale_percent = 25
+        # width = int(frame.shape[1] * scale_percent/100)
+        # height = int(frame.shape[0] * scale_percent/100)
+
+        # frame = cv2.resize(frame, (width, height), interpolation=cv2.INTER_AREA)
+
         if "zoneArea" in self.zone_config:
             tl = self.zone_config["zoneArea"]["topLeft"]
             br = self.zone_config["zoneArea"]["bottomRight"]
             frame = frame[tl["y"]:br["y"], tl["x"]:br["x"]]
             self.cropped_image = frame
 
-        if "minBgUpdateArea" in self.zone_config:
-            self.MIN_AREA_BG_UPDATE = self.zone_config["minBgUpdateArea"]
-
         if "minDetectionArea" in self.zone_config:
             self.MIN_AREA_ON_THRESHOLD = self.zone_config["minDetectionArea"]
             self.MIN_AREA_OFF_THRESHOLD = self.MIN_AREA_ON_THRESHOLD * 0.8
 
-        # Reset bg after timer
-        if self.current_bg_update_frame == self.MAX_FRAMES_BG or self.bg_needs_update:
-            self.background = frame
-            self.current_bg_update_frame = 0
-            self.bg_needs_update = False
-
-        # scale_percent = 25
-        # width = int(frame.shape[1] * scale_percent/100)
-        # height = int(frame.shape[0] * scale_percent/100)
-
-        # frame = cv2.resize(frame, (width, height), interpolation=cv2.INTER_AREA)
         
         if self.is_background_set == False:
             self.background = frame
@@ -76,17 +65,11 @@ class AdaptiveBGSubtractor:
 
             detections = []
 
-            update_bg = True
-            update_bg_deferred = False
             for cnt in contours:
                 x,y,w,h = cv2.boundingRect(cnt)
                 area = w*h
                 # Reduce the area size needed for the user leaving the frame, prevent boundary errors
                 activation_threshold = self.MIN_AREA_OFF_THRESHOLD if self.in_frame else self.MIN_AREA_ON_THRESHOLD
-                if self.MIN_AREA_BG_UPDATE is not None and area > self.MIN_AREA_BG_UPDATE:
-                    update_bg = False
-                if self.MIN_AREA_BG_UPDATE is not None and area > self.MIN_AREA_BG_UPDATE * 1.5:
-                    update_bg_deferred = True
                 if area > activation_threshold:
                     detections.append([x,y,x+w,y+h, area])
 
@@ -104,16 +87,7 @@ class AdaptiveBGSubtractor:
             elif len(detections) == 0 and self.in_frame:
                 self.in_frame = False
 
-            # Reset bg update if nothing being detected in zone after certain
-            # number of frames
-            #if len(detections) == 0 and not update_bg and update_bg_deferred:
-            #    self.current_bg_update_frame = self.current_bg_update_frame + 1
-
-            # Only update the background if the user isn't in the frame, detects the presence
-            # of the user in the zone.
-            #if update_bg:
-            #    self.background = self.update_background(frame, alpha = self.ALPHA)
-
+            self.update_background(frame, 0.001)
             self.processed_image = motion_mask
 
     def reset_bg(self):

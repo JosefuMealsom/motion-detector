@@ -1,5 +1,6 @@
 from src.video_stream import VideoStream
 from src.adaptive_bg_subtraction import AdaptiveBGSubtractor
+from src.normal_abs_diff import NormalAbsDiff
 from flask import Flask, render_template, Response, request
 from threading import Thread
 from src.config_loader import load_config, save_config
@@ -7,7 +8,7 @@ from src.config_loader import load_config, save_config
 app = Flask(__name__)
 #video_stream = VideoStream("rtsp://admin:P@ssw0rd@192.168.1.64:554/Streaming/channels/101")
 video_stream = VideoStream("test-output.mp4")
-zone_detector = AdaptiveBGSubtractor()
+zone_detector = NormalAbsDiff()
 
 def process_stream():
     result, config = load_config()
@@ -113,6 +114,6 @@ def reset_zone():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=False)
 
 video_stream.release()
