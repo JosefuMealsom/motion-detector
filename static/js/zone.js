@@ -2,6 +2,8 @@ import { saveConfigForKey } from "./storage.service.js";
 import { ZoneDrawer } from "./zone-drawer.js";
 
 export class Zone {
+  activeState = false;
+
   constructor(canvas, zoneConfig = {}) {
     this.id = zoneConfig.id;
     this.zoneDrawer = new ZoneDrawer(canvas, zoneConfig.zoneArea);
@@ -35,6 +37,10 @@ export class Zone {
     this.minAreaDrawer.removeEvents();
   }
 
+  setActiveState(state) {
+    this.activeState = state;
+  }
+
   update() {
     if (!this.zoneDrawer.zone || !this.minAreaDrawer.zone) return;
 
@@ -43,25 +49,17 @@ export class Zone {
       minDetectionArea: this.calculateArea(this.minAreaDrawer.zone),
     };
 
-    const stringifiedData = JSON.stringify(data);
-
-    const update = async () => {
-      await fetch("zone", {
-        method: "POST",
-        body: stringifiedData,
-        headers: { "Content-Type": "application/json" },
+    if (this.updateCallback)
+      this.updateCallback({
+        zoneArea: this.zoneDrawer.zone,
+        minDetectionArea: this.minAreaDrawer.zone,
       });
-    };
 
-    saveConfigForKey("zone", {
-      zoneArea: this.zoneDrawer.zone,
-      minDetectionArea: this.minAreaDrawer.zone,
-    });
-
-    if (this.updateCallback) this.updateCallback();
-
-    update();
     this.removeEvents();
+  }
+
+  minDetectionArea() {
+    return this.calculateArea(this.minAreaDrawer.zone);
   }
 
   calculateArea(zone) {
@@ -76,7 +74,7 @@ export class Zone {
   }
 
   render() {
-    this.zoneDrawer.render("#FF0000");
+    this.zoneDrawer.render(this.activeState ? "#FFFFFF" : "#FF0000");
     this.minAreaDrawer.render("#00FF00");
   }
 }

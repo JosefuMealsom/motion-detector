@@ -1,5 +1,7 @@
-import { loadConfigForKey } from "./storage.service.js";
+import { loadConfigForKey, saveConfigForKey } from "./storage.service.js";
+import { onEnterZone, onLeftZone } from "./websocket.service.js";
 import { Zone } from "./zone.js";
+import { RangeInput } from "./range-input.js";
 
 const rawStreamCanvas = document.getElementById("raw-stream");
 const rawStreamContext = rawStreamCanvas.getContext("2d");
@@ -11,7 +13,21 @@ resetBgButton.addEventListener("click", () =>
   fetch("zone/reset", { method: "POST" })
 );
 
-const zone = new Zone(rawStreamCanvas, loadConfigForKey("zone-test"));
+const config = loadConfigForKey("zone");
+
+const thresholdInput = new RangeInput(
+  "threshold",
+  "threshold-value",
+  config["threshold"]
+);
+const minTimeInput = new RangeInput(
+  "min-time",
+  "min-time-value",
+  config["minTime"]
+);
+const scaleInput = new RangeInput("scale", "scale-value", config["scale"]);
+
+const zone = new Zone(rawStreamCanvas, config);
 
 const img = new Image();
 img.src = "/stream/raw";
@@ -35,10 +51,42 @@ drawMinAreaButton.addEventListener("click", () => {
   drawZoneButton.classList.remove("active");
 });
 
+thresholdInput.onChange(updateConfigOnServer);
+minTimeInput.onChange(updateConfigOnServer);
+scaleInput.onChange(updateConfigOnServer);
+
 zone.onUpdate(() => {
   drawMinAreaButton.classList.remove("active");
   drawZoneButton.classList.remove("active");
+
+  updateConfigOnServer();
 });
+
+async function updateConfigOnServer() {
+  const data = {
+    zoneArea: zone.zoneDrawer.zone,
+    minDetectionArea: zone.minAreaDrawer.zone,
+    threshold: thresholdInput.getValue(),
+    minTime: minTimeInput.getValue(),
+    scale: scaleInput.getValue(),
+  };
+
+  const stringifiedData = JSON.stringify({
+    ...data,
+    minDetectionArea: zone.minDetectionArea(),
+  });
+
+  await fetch("zone", {
+    method: "POST",
+    body: stringifiedData,
+    headers: { "Content-Type": "application/json" },
+  });
+
+  saveConfigForKey("zone", data);
+}
+
+onEnterZone(() => zone.setActiveState(true));
+onLeftZone(() => zone.setActiveState(false));
 
 function renderRawStream() {
   rawStreamContext.drawImage(img, 0, 0);

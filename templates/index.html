@@ -1,47 +1,102 @@
 <html>
+  <head>
+    <link href="{{url_for('static',filename='main.css')}}" rel="stylesheet" />
+    <script
+      src="{{url_for('static',filename='js/main.js')}}"
+      defer
+      type="module"
+    ></script>
+    <script
+      src="{{url_for('static',filename='js/websocket.service.js')}}"
+      defer
+      type="module"
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"
+      integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA=="
+      crossorigin="anonymous"
+    ></script>
+  </head>
 
-<head>
-  <link href="{{url_for('static',filename='main.css')}}" rel="stylesheet" />
-  <script src="{{url_for('static',filename='js/main.js')}}" defer type="module"></script>
-  <script src="{{url_for('static',filename='js/websocket.service.js')}}" defer type="module"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"
-    integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA=="
-    crossorigin="anonymous"></script>
-</head>
-
-<body>
-  <div class="p-3 justify-evenly w-full">
-    <div class="mb-3">
-      <h3 class="font-bold mb-3">Raw stream</h3>
-      <canvas id="raw-stream" class="w-[40rem] mb-3"></canvas>
-      <button id="draw-zone-area" type="button"
-        class="bg-sky-500 px-4 py-2 text-white font-bold rounded-lg select-none [&.active]:bg-yellow-400">
-        Draw zone
-      </button>
-      <button id="draw-min-area" type="button"
-        class="bg-sky-500 px-4 py-2 text-white font-bold rounded-lg select-none [&.active]:bg-yellow-400">
-        Draw min detection area
-      </button>
-      <button id="reset-bg" type="button"
-        class="bg-sky-500 px-4 py-2 text-white font-bold rounded-lg select-none [&.active]:bg-yellow-400">
-        Reset BG
-      </button>
+  <body>
+    <div class="p-3 justify-evenly w-full">
+      <div class="mb-3">
+        <h3 class="font-bold mb-3">Raw stream</h3>
+        <canvas id="raw-stream" class="w-[40rem] mb-3"></canvas>
+        <button
+          id="draw-zone-area"
+          type="button"
+          class="bg-sky-500 px-4 py-2 text-white font-bold rounded-lg select-none [&.active]:bg-yellow-400"
+        >
+          Draw zone
+        </button>
+        <button
+          id="draw-min-area"
+          type="button"
+          class="bg-sky-500 px-4 py-2 text-white font-bold rounded-lg select-none [&.active]:bg-yellow-400"
+        >
+          Draw min detection area
+        </button>
+        <button
+          id="reset-bg"
+          type="button"
+          class="bg-sky-500 px-4 py-2 text-white font-bold rounded-lg select-none [&.active]:bg-yellow-400"
+        >
+          Reset BG
+        </button>
+        <div class="py-2">
+          <label for="scale">Image scale</label>
+          <input name="scale" id="scale" type="range" min="5" max="100" />
+          <p id="scale-value"></p>
+        </div>
+        <div class="py-2">
+          <label for="threshold">Threshold</label>
+          <input
+            name="threshold"
+            id="threshold"
+            type="range"
+            min="5"
+            max="100"
+            step="1"
+          />
+          <p id="threshold-value"></p>
+        </div>
+        <div class="py-2">
+          <label for="min-time">Min time in zone (frames)</label>
+          <input
+            name="min-time"
+            id="min-time"
+            type="range"
+            min="0"
+            max="100"
+            step="1"
+          />
+          <p id="min-time-value"></p>
+        </div>
+      </div>
+      <div class="flex h-full">
+        <div class="w-[20rem] h-[20rem]">
+          <h3 class="font-bold mb-3">Cropped stream</h3>
+          <img
+            src="/stream/cropped"
+            class="h-full w-full object-contain mb-3"
+          />
+        </div>
+        <div class="w-[20rem] h-[20rem]">
+          <h3 class="font-bold mb-3">Processed stream</h3>
+          <img
+            src="/stream/processed"
+            class="w-full h-full object-contain mb-3"
+          />
+        </div>
+        <div class="w-[20rem] h-[20rem]">
+          <h3 class="font-bold mb-3">Background stream</h3>
+          <img
+            src="/stream/background"
+            class="w-full h-full object-contain mb-3"
+          />
+        </div>
+      </div>
     </div>
-    <div class="flex h-full">
-      <div class="w-[20rem] h-[20rem]">
-        <h3 class="font-bold mb-3">Cropped stream</h3>
-        <img src="/stream/cropped" class="h-full w-full object-contain mb-3" />
-      </div>
-      <div class="w-[20rem] h-[20rem]">
-        <h3 class="font-bold mb-3">Processed stream</h3>
-        <img src="/stream/processed" class="w-full h-full object-contain mb-3" />
-      </div>
-      <div class="w-[20rem] h-[20rem]">
-        <h3 class="font-bold mb-3">Background stream</h3>
-        <img src="/stream/background" class="w-full h-full object-contain mb-3" />
-      </div>
-    </div>
-  </div>
-</body>
-
+  </body>
 </html>
