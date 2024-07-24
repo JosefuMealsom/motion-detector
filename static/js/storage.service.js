@@ -5,7 +5,7 @@ export function loadConfigForKey(key) {
     return JSON.parse(zoneString);
   }
 
-  return zoneString;
+  return undefined;
 }
 
 export function saveConfigForKey(key, value) {
