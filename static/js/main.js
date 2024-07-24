@@ -26,6 +26,16 @@ const minTimeInput = new RangeInput(
   config["minTime"]
 );
 const scaleInput = new RangeInput("scale", "scale-value", config["scale"]);
+const erosionInput = new RangeInput(
+  "erosion",
+  "erosion-value",
+  config["erosion"]
+);
+const dilationInput = new RangeInput(
+  "dilation",
+  "dilation-value",
+  config["dilation"]
+);
 
 const zone = new Zone(rawStreamCanvas, config);
 
@@ -54,6 +64,8 @@ drawMinAreaButton.addEventListener("click", () => {
 thresholdInput.onChange(updateConfigOnServer);
 minTimeInput.onChange(updateConfigOnServer);
 scaleInput.onChange(updateConfigOnServer);
+erosionInput.onChange(updateConfigOnServer);
+dilationInput.onChange(updateConfigOnServer);
 
 zone.onUpdate(() => {
   drawMinAreaButton.classList.remove("active");
@@ -69,6 +81,8 @@ async function updateConfigOnServer() {
     threshold: thresholdInput.getValue(),
     minTime: minTimeInput.getValue(),
     scale: scaleInput.getValue(),
+    erosion: erosionInput.getValue(),
+    dilation: dilationInput.getValue(),
   };
 
   const stringifiedData = JSON.stringify({

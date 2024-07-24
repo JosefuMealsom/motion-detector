@@ -11,6 +11,8 @@ class NormalAbsDiff:
     MIN_AREA_OFF_THRESHOLD = 5000
     MIN_ZONE_FRAMES = 30
     IMAGE_SCALE = 100
+    EROSION = 3
+    DILATION = 5
 
     is_background_set = False
     background = None
@@ -42,6 +44,12 @@ class NormalAbsDiff:
 
         if "minTime" in self.zone_config:
             self.MIN_ZONE_FRAMES = self.zone_config["minTime"]
+
+        if "erosion" in self.zone_config:
+            self.EROSION = self.zone_config["erosion"]
+
+        if "dilation" in self.zone_config:
+            self.DILATION = self.zone_config["dilation"]
 
     def update_background(self, current_frame, alpha):
         if self.background is None:
@@ -79,8 +87,8 @@ class NormalAbsDiff:
             ret, motion_mask = cv2.threshold(
                 diff, self.THRESH, self.ASSIGN_VALUE, cv2.THRESH_BINARY
             )
-            motion_mask = cv2.erode(motion_mask, None, iterations=3)
-            motion_mask = cv2.dilate(motion_mask, None, iterations=5)
+            motion_mask = cv2.erode(motion_mask, None, iterations=self.EROSION)
+            motion_mask = cv2.dilate(motion_mask, None, iterations=self.DILATION)
             motion_mask = cv2.GaussianBlur(motion_mask, (15, 15), 0)
             ret, motion_mask = cv2.threshold(
                 motion_mask, self.THRESH, self.ASSIGN_VALUE, cv2.THRESH_BINARY
