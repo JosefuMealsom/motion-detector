@@ -28,6 +28,7 @@ class NormalAbsDiff:
     def load_config(self, config):
         self.zone_config = config
         self.is_background_set = False
+        self.background = None
 
         if "threshold" in self.zone_config:
              self.THRESH = self.zone_config["threshold"]
@@ -37,15 +38,16 @@ class NormalAbsDiff:
             
         if "minDetectionArea" in self.zone_config:
             self.MIN_AREA_ON_THRESHOLD = self.zone_config["minDetectionArea"] * self.IMAGE_SCALE / 100
-            self.MIN_AREA_OFF_THRESHOLD = self.MIN_AREA_ON_THRESHOLD * 0.8 * self.IMAGE_SCALE / 100
+            self.MIN_AREA_OFF_THRESHOLD = self.MIN_AREA_ON_THRESHOLD * 0.8
 
         if "minTime" in self.zone_config:
             self.MIN_ZONE_FRAMES = self.zone_config["minTime"]
 
     def update_background(self, current_frame, alpha):
+        if self.background is None:
+            return 
         bg = alpha * current_frame + (1 - alpha) * self.background
         bg = np.uint8(bg)
-        return bg
 
     def process(self, frame):
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -59,7 +61,7 @@ class NormalAbsDiff:
                 height, width = frame.shape
                 width = int(width * self.IMAGE_SCALE /100)
                 height = int(height * self.IMAGE_SCALE/100)
-                frame = cv2.resize(frame, (width, height), )
+                frame = cv2.resize(frame, (width, height), cv2.INTER_AREA)
 
             self.cropped_image = frame
 
@@ -129,6 +131,8 @@ class NormalAbsDiff:
         return encode_image_for_web(self.cropped_image)
 
     def bg_jpeg(self):
+        if self.background is None:
+            return False, None
         return encode_image_for_web(self.background)
 
     def processed_jpeg(self):
