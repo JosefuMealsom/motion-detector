@@ -1,5 +1,4 @@
 from src.video_stream import VideoStream
-from src.adaptive_bg_subtraction import AdaptiveBGSubtractor
 from src.normal_abs_diff import NormalAbsDiff
 from flask import Flask, render_template, Response, request
 from threading import Thread

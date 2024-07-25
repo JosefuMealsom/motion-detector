@@ -14,6 +14,7 @@ class NormalAbsDiff:
     IMAGE_SCALE = 100
     EROSION = 3
     DILATION = 5
+    FILTER_SIZE = 15
 
     is_background_set = False
     background = None
@@ -59,6 +60,13 @@ class NormalAbsDiff:
                 if config["zoneArea"] != self.zone_config["zoneArea"]:
                     self.background_needs_update = True
 
+            if "blurFilterSize" in config:
+                filterSize = config["blurFilterSize"]
+                # Kernel size needs to be odd and positive
+                if filterSize % 2 == 0:
+                    filterSize = filterSize + 1
+                self.FILTER_SIZE = filterSize
+
             self.zone_config = config
                 
 
@@ -92,7 +100,8 @@ class NormalAbsDiff:
                 self.raw_difference = motion_mask
                 motion_mask = cv2.erode(motion_mask, None, iterations=self.EROSION)
                 motion_mask = cv2.dilate(motion_mask, None, iterations=self.DILATION)
-                motion_mask = cv2.GaussianBlur(motion_mask, (15, 15), 0)
+                if self.FILTER_SIZE > 0:
+                    motion_mask = cv2.GaussianBlur(motion_mask, (self.FILTER_SIZE, self.FILTER_SIZE), 0)
                 ret, motion_mask = cv2.threshold(
                     motion_mask, self.THRESH, self.ASSIGN_VALUE, cv2.THRESH_BINARY
                 )
@@ -138,7 +147,9 @@ class NormalAbsDiff:
     def reset_bg(self):
         self.background_needs_update = True
 
-    def cropped_jpeg(self):
+    def cropped_jpeg(self): 
+        if self.cropped_image is None:
+            return False, None
         return encode_image_for_web(self.cropped_image)
 
     def raw_difference_jpeg(self):

@@ -26,6 +26,7 @@ const minTimeInput = new RangeInput(
   config["minTime"]
 );
 const scaleInput = new RangeInput("scale", "scale-value", config["scale"]);
+
 const erosionInput = new RangeInput(
   "erosion",
   "erosion-value",
@@ -35,6 +36,11 @@ const dilationInput = new RangeInput(
   "dilation",
   "dilation-value",
   config["dilation"]
+);
+const blurFilterInput = new RangeInput(
+  "blur-filter-size",
+  "blur-filter-size-value",
+  config["blurFilterSize"]
 );
 
 const zone = new Zone(rawStreamCanvas, config);
@@ -66,6 +72,7 @@ minTimeInput.onChange(updateConfigOnServer);
 scaleInput.onChange(updateConfigOnServer);
 erosionInput.onChange(updateConfigOnServer);
 dilationInput.onChange(updateConfigOnServer);
+blurFilterInput.onChange(updateConfigOnServer);
 
 zone.onUpdate(() => {
   drawMinAreaButton.classList.remove("active");
@@ -83,6 +90,7 @@ async function updateConfigOnServer() {
     scale: scaleInput.getValue(),
     erosion: erosionInput.getValue(),
     dilation: dilationInput.getValue(),
+    blurFilterSize: blurFilterInput.getValue(),
   };
 
   const stringifiedData = JSON.stringify({
