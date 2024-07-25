@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 from src.image_encoder import encode_image_for_web
+from threading import Lock
 
 class NormalAbsDiff:
     THRESH = 30
@@ -25,104 +26,114 @@ class NormalAbsDiff:
     time_in_zone = 0
     on_detect_callback = None
 
+    def __init__(self):
+        self.lock = Lock()
+
     def add_detect_callback(self, on_detect_callback):
         self.on_detect_callback = on_detect_callback
 
     def load_config(self, config):
-        self.zone_config = config
+        with self.lock:
+            if "threshold" in config:
+                self.THRESH = config["threshold"]
 
-        if "threshold" in self.zone_config:
-             self.THRESH = self.zone_config["threshold"]
+            if "scale" in config:
+                if self.IMAGE_SCALE is not config["scale"]:
+                    self.IMAGE_SCALE = config["scale"]
+                    self.background_needs_update = True
+                
+            if "minDetectionArea" in config:
+                self.MIN_AREA_ON_THRESHOLD = config["minDetectionArea"] * self.IMAGE_SCALE / 100
+                self.MIN_AREA_OFF_THRESHOLD = self.MIN_AREA_ON_THRESHOLD * 0.8
 
-        if "scale" in self.zone_config:
-            if self.IMAGE_SCALE is not self.zone_config["scale"]:
-                self.IMAGE_SCALE = self.zone_config["scale"]
-                self.background_needs_update = True
-            
-        if "minDetectionArea" in self.zone_config:
-            self.MIN_AREA_ON_THRESHOLD = self.zone_config["minDetectionArea"] * self.IMAGE_SCALE / 100
-            self.MIN_AREA_OFF_THRESHOLD = self.MIN_AREA_ON_THRESHOLD * 0.8
+            if "minTime" in config:
+                self.MIN_ZONE_FRAMES = config["minTime"]
 
-        if "minTime" in self.zone_config:
-            self.MIN_ZONE_FRAMES = self.zone_config["minTime"]
+            if "erosion" in config:
+                self.EROSION = config["erosion"]
 
-        if "erosion" in self.zone_config:
-            self.EROSION = self.zone_config["erosion"]
+            if "dilation" in config:
+                self.DILATION = config["dilation"]
+                
+            if "zoneArea" in self.zone_config:
+                if config["zoneArea"] != self.zone_config["zoneArea"]:
+                    self.background_needs_update = True
 
-        if "dilation" in self.zone_config:
-            self.DILATION = self.zone_config["dilation"]
+            self.zone_config = config
+                
 
     def process(self, frame):
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        with self.lock:
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-        if "zoneArea" in self.zone_config:
-            tl = self.zone_config["zoneArea"]["topLeft"]
-            br = self.zone_config["zoneArea"]["bottomRight"]
-            frame = frame[tl["y"] : br["y"], tl["x"] : br["x"]]
+            if "zoneArea" in self.zone_config:
+                tl = self.zone_config["zoneArea"]["topLeft"]
+                br = self.zone_config["zoneArea"]["bottomRight"]
+                frame = frame[tl["y"] : br["y"], tl["x"] : br["x"]]
 
-            if self.IMAGE_SCALE < 100:
-                height, width = frame.shape
-                width = int(width * self.IMAGE_SCALE /100)
-                height = int(height * self.IMAGE_SCALE/100)
-                frame = cv2.resize(frame, (width, height), cv2.INTER_AREA)
+                if self.IMAGE_SCALE < 100:
+                    height, width = frame.shape
+                    width = int(width * self.IMAGE_SCALE /100)
+                    height = int(height * self.IMAGE_SCALE/100)
+                    frame = cv2.resize(frame, (width, height), cv2.INTER_AREA)
 
-            self.cropped_image = frame
+                self.cropped_image = frame
 
-        if self.background_needs_update:
-            self.background = frame
-            self.background_needs_update = False
+            if self.background_needs_update:
+                self.background = frame
+                self.background_needs_update = False
 
-            return False, None
-        else:
-            diff = cv2.absdiff(self.background, frame)
-            ret, motion_mask = cv2.threshold(
-                diff, self.THRESH, self.ASSIGN_VALUE, cv2.THRESH_BINARY
-            )
-            self.raw_difference = motion_mask
-            motion_mask = cv2.erode(motion_mask, None, iterations=self.EROSION)
-            motion_mask = cv2.dilate(motion_mask, None, iterations=self.DILATION)
-            motion_mask = cv2.GaussianBlur(motion_mask, (15, 15), 0)
-            ret, motion_mask = cv2.threshold(
-                motion_mask, self.THRESH, self.ASSIGN_VALUE, cv2.THRESH_BINARY
-            )
-            contours, _ = cv2.findContours(
-                motion_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_TC89_L1
-            )
-            
-            detections = []
-
-            for cnt in contours:
-                x, y, w, h = cv2.boundingRect(cnt)
-                area = w * h
-                # Reduce the area size needed for the user leaving the frame, prevent boundary errors
-                activation_threshold = (
-                    self.MIN_AREA_OFF_THRESHOLD
-                    if self.in_frame
-                    else self.MIN_AREA_ON_THRESHOLD
-                )
-                if area > activation_threshold:
-                    detections.append([x, y, x + w, y + h, area])
-            
-
-            for box in detections:
-                cv2.rectangle(
-                    motion_mask, (box[0], box[1]), (box[2], box[3]), (255, 0, 0), 2
-                )
-
-            if len(detections) > 0:
-                self.time_in_zone = self.time_in_zone + 1
+                return False, None
             else:
-                self.time_in_zone = 0
+                diff = cv2.absdiff(self.background, frame)
+                ret, motion_mask = cv2.threshold(
+                    diff, self.THRESH, self.ASSIGN_VALUE, cv2.THRESH_BINARY
+                )
+                self.raw_difference = motion_mask
+                motion_mask = cv2.erode(motion_mask, None, iterations=self.EROSION)
+                motion_mask = cv2.dilate(motion_mask, None, iterations=self.DILATION)
+                motion_mask = cv2.GaussianBlur(motion_mask, (15, 15), 0)
+                ret, motion_mask = cv2.threshold(
+                    motion_mask, self.THRESH, self.ASSIGN_VALUE, cv2.THRESH_BINARY
+                )
+                contours, _ = cv2.findContours(
+                    motion_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_TC89_L1
+                )
+                
+                detections = []
 
-            if not self.in_frame and self.time_in_zone > self.MIN_ZONE_FRAMES:
-                if self.on_detect_callback is not None:
-                    self.on_detect_callback(True)
-                self.in_frame = True
-            elif len(detections) == 0 and self.in_frame:
-                self.in_frame = False
-                self.on_detect_callback(False)
+                for cnt in contours:
+                    x, y, w, h = cv2.boundingRect(cnt)
+                    area = w * h
+                    # Reduce the area size needed for the user leaving the frame, prevent boundary errors
+                    activation_threshold = (
+                        self.MIN_AREA_OFF_THRESHOLD
+                        if self.in_frame
+                        else self.MIN_AREA_ON_THRESHOLD
+                    )
+                    if area > activation_threshold:
+                        detections.append([x, y, x + w, y + h, area])
+                
 
-            self.processed_image = motion_mask
+                for box in detections:
+                    cv2.rectangle(
+                        motion_mask, (box[0], box[1]), (box[2], box[3]), (255, 0, 0), 2
+                    )
+
+                if len(detections) > 0:
+                    self.time_in_zone = self.time_in_zone + 1
+                else:
+                    self.time_in_zone = 0
+
+                if not self.in_frame and self.time_in_zone > self.MIN_ZONE_FRAMES:
+                    if self.on_detect_callback is not None:
+                        self.on_detect_callback(True)
+                    self.in_frame = True
+                elif len(detections) == 0 and self.in_frame:
+                    self.in_frame = False
+                    self.on_detect_callback(False)
+
+                self.processed_image = motion_mask
 
     def reset_bg(self):
         self.background_needs_update = True
