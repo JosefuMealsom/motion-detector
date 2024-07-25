@@ -44,11 +44,6 @@ export class Zone {
   update() {
     if (!this.zoneDrawer.zone || !this.minAreaDrawer.zone) return;
 
-    const data = {
-      zoneArea: this.zoneDrawer.zone,
-      minDetectionArea: this.calculateArea(this.minAreaDrawer.zone),
-    };
-
     if (this.updateCallback)
       this.updateCallback({
         zoneArea: this.zoneDrawer.zone,

@@ -1,8 +1,6 @@
 export class ZoneDrawer {
-  zone = {
-    topLeft: undefined,
-    topRight: undefined,
-  };
+  mouseStart = undefined;
+  mouseEnd = undefined;
   oldZoneObject = undefined;
   mouseDown = false;
   onZoneUpdateCallback = undefined;
@@ -48,21 +46,46 @@ export class ZoneDrawer {
 
     this.oldZoneObject = { ...this.zone };
 
-    this.zone.topLeft = this.convertHtmlPosToCanvasPos(
+    this.mouseStart = this.convertHtmlPosToCanvasPos(
       evt.clientX - rect.left,
       evt.clientY - rect.top
     );
-    this.zone.bottomRight = undefined;
+    this.mouseEnd = undefined;
   }
 
   onMouseMove(evt) {
     if (!this.mouseDown) return;
     var rect = this.canvasElement.getBoundingClientRect();
 
-    this.zone.bottomRight = this.convertHtmlPosToCanvasPos(
+    this.mouseEnd = this.convertHtmlPosToCanvasPos(
       evt.clientX - rect.left,
       evt.clientY - rect.top
     );
+  }
+
+  set zone(config) {
+    this.mouseStart = config.topLeft;
+    this.mouseEnd = config.bottomRight;
+  }
+
+  // Pretty inefficient, but ok for a prototype
+  get zone() {
+    if (!this.mouseStart || !this.mouseEnd) return {};
+
+    const { x: startX, y: startY } = this.mouseStart;
+    const { x: endX, y: endY } = this.mouseEnd;
+
+    const zone = {};
+    zone.topLeft = {
+      x: Math.min(startX, endX),
+      y: Math.min(startY, endY),
+    };
+    zone.bottomRight = {
+      x: Math.max(startX, endX),
+      y: Math.max(startY, endY),
+    };
+
+    return zone;
   }
 
   onMouseUp(evt) {

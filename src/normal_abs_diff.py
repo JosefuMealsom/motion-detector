@@ -17,7 +17,7 @@ class NormalAbsDiff:
 
     is_background_set = False
     background = None
-    background_needs_update = False
+    background_needs_update = True
     cropped_image = None
     processed_image = None
     raw_difference = None
