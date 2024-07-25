@@ -19,6 +19,7 @@ class NormalAbsDiff:
     background_needs_update = False
     cropped_image = None
     processed_image = None
+    raw_difference = None
     in_frame = False
     zone_config = {}
     time_in_zone = 0
@@ -29,14 +30,14 @@ class NormalAbsDiff:
 
     def load_config(self, config):
         self.zone_config = config
-        self.is_background_set = False
-        self.background = None
 
         if "threshold" in self.zone_config:
              self.THRESH = self.zone_config["threshold"]
 
         if "scale" in self.zone_config:
-            self.IMAGE_SCALE = self.zone_config["scale"]
+            if self.IMAGE_SCALE is not self.zone_config["scale"]:
+                self.IMAGE_SCALE = self.zone_config["scale"]
+                self.background_needs_update = True
             
         if "minDetectionArea" in self.zone_config:
             self.MIN_AREA_ON_THRESHOLD = self.zone_config["minDetectionArea"] * self.IMAGE_SCALE / 100
@@ -50,12 +51,6 @@ class NormalAbsDiff:
 
         if "dilation" in self.zone_config:
             self.DILATION = self.zone_config["dilation"]
-
-    def update_background(self, current_frame, alpha):
-        if self.background is None:
-            return 
-        bg = alpha * current_frame + (1 - alpha) * self.background
-        bg = np.uint8(bg)
 
     def process(self, frame):
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -77,16 +72,13 @@ class NormalAbsDiff:
             self.background = frame
             self.background_needs_update = False
 
-        if self.is_background_set == False:
-            self.background = frame
-            self.is_background_set = True
-
             return False, None
         else:
             diff = cv2.absdiff(self.background, frame)
             ret, motion_mask = cv2.threshold(
                 diff, self.THRESH, self.ASSIGN_VALUE, cv2.THRESH_BINARY
             )
+            self.raw_difference = motion_mask
             motion_mask = cv2.erode(motion_mask, None, iterations=self.EROSION)
             motion_mask = cv2.dilate(motion_mask, None, iterations=self.DILATION)
             motion_mask = cv2.GaussianBlur(motion_mask, (15, 15), 0)
@@ -96,7 +88,7 @@ class NormalAbsDiff:
             contours, _ = cv2.findContours(
                 motion_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_TC89_L1
             )
-
+            
             detections = []
 
             for cnt in contours:
@@ -110,6 +102,7 @@ class NormalAbsDiff:
                 )
                 if area > activation_threshold:
                     detections.append([x, y, x + w, y + h, area])
+            
 
             for box in detections:
                 cv2.rectangle(
@@ -129,7 +122,6 @@ class NormalAbsDiff:
                 self.in_frame = False
                 self.on_detect_callback(False)
 
-            self.update_background(frame, 0.05)
             self.processed_image = motion_mask
 
     def reset_bg(self):
@@ -137,6 +129,9 @@ class NormalAbsDiff:
 
     def cropped_jpeg(self):
         return encode_image_for_web(self.cropped_image)
+
+    def raw_difference_jpeg(self):
+        return encode_image_for_web(self.raw_difference)
 
     def bg_jpeg(self):
         if self.background is None:

@@ -60,6 +60,12 @@ def stream_processed():
         mimetype="multipart/x-mixed-replace; boundary=frame",
     )
 
+@app.route("/stream/raw-difference")
+def stream_raw_difference():
+    return Response(
+        generate_raw_difference_frames(),
+        mimetype="multipart/x-mixed-replace; boundary=frame",
+    )
 
 @app.route("/stream/background")
 def stream_background():
@@ -93,6 +99,11 @@ def generate_processed_frames():
         if success:
             yield image
 
+def generate_raw_difference_frames():
+    while True:
+        success, image = zone_detector.raw_difference_jpeg()
+        if success:
+            yield image
 
 def generate_bg_frames():
     while True:

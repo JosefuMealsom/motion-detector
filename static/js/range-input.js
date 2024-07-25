@@ -14,6 +14,9 @@ export class RangeInput {
   addEvents() {
     this.input.addEventListener("input", (evt) => {
       this.label.textContent = evt.target.value;
+      if (this.updateCallback) {
+        this.updateCallback(evt.target.value);
+      }
     });
 
     this.input.addEventListener("change", (evt) => {

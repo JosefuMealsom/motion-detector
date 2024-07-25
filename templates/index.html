@@ -19,38 +19,40 @@
   </head>
 
   <body>
-    <div class="p-3 justify-evenly w-full">
-      <div class="mb-3">
+    <div class="p-3 justify-evenly w-full flex">
+      <div>
         <h3 class="font-bold mb-3">Raw stream</h3>
         <canvas id="raw-stream" class="w-[40rem] mb-3"></canvas>
+      </div>
+      <div class="grid grid-cols-3 gap-3">
         <button
           id="draw-zone-area"
           type="button"
-          class="bg-sky-500 px-4 py-2 text-white font-bold rounded-lg select-none [&.active]:bg-yellow-400"
+          class="bg-sky-500 px-4 py-2 text-white font-bold rounded-lg select-none [&.active]:bg-yellow-400 h-10"
         >
           Draw zone
         </button>
         <button
           id="draw-min-area"
           type="button"
-          class="bg-sky-500 px-4 py-2 text-white font-bold rounded-lg select-none [&.active]:bg-yellow-400"
+          class="bg-sky-500 px-4 py-2 text-white font-bold rounded-lg select-none [&.active]:bg-yellow-400 h-10"
         >
           Draw min detection area
         </button>
         <button
           id="reset-bg"
           type="button"
-          class="bg-sky-500 px-4 py-2 text-white font-bold rounded-lg select-none [&.active]:bg-yellow-400"
+          class="bg-sky-500 px-4 py-2 text-white font-bold rounded-lg select-none [&.active]:bg-yellow-400 h-10"
         >
           Reset BG
         </button>
-        <div class="py-2">
-          <label for="scale">Image scale</label>
+        <div class="py-2 flex flex-col w-36">
+          <label for="scale" class="font-bold">Image scale</label>
           <input name="scale" id="scale" type="range" min="5" max="100" />
           <p id="scale-value"></p>
         </div>
-        <div class="py-2">
-          <label for="threshold">Threshold</label>
+        <div class="py-2 flex flex-col w-36">
+          <label for="threshold" class="font-bold">Threshold</label>
           <input
             name="threshold"
             id="threshold"
@@ -61,8 +63,10 @@
           />
           <p id="threshold-value"></p>
         </div>
-        <div class="py-2">
-          <label for="min-time">Min time in zone (frames)</label>
+        <div class="py-2 flex flex-col w-36">
+          <label for="min-time" class="font-bold"
+            >Min time in zone (frames)</label
+          >
           <input
             name="min-time"
             id="min-time"
@@ -73,8 +77,8 @@
           />
           <p id="min-time-value"></p>
         </div>
-        <div class="py-2">
-          <label for="erosion">Erosion</label>
+        <div class="py-2 flex flex-col w-36">
+          <label for="erosion" class="font-bold">Erosion</label>
           <input
             name="erosion"
             id="erosion"
@@ -85,8 +89,8 @@
           />
           <p id="erosion-value"></p>
         </div>
-        <div class="py-2">
-          <label for="dilation">Dilation</label>
+        <div class="py-2 flex flex-col w-36">
+          <label for="dilation" class="font-bold">Dilation</label>
           <input
             name="dilation"
             id="dilation"
@@ -98,11 +102,20 @@
           <p id="dilation-value"></p>
         </div>
       </div>
-      <div class="flex h-full">
+    </div>
+    <div>
+      <div class="flex h-full justify-evenly">
         <div class="w-[20rem] h-[20rem]">
           <h3 class="font-bold mb-3">Cropped stream</h3>
           <img
             src="/stream/cropped"
+            class="h-full w-full object-contain mb-3"
+          />
+        </div>
+        <div class="w-[20rem] h-[20rem]">
+          <h3 class="font-bold mb-3">Raw difference stream</h3>
+          <img
+            src="/stream/raw-difference"
             class="h-full w-full object-contain mb-3"
           />
         </div>
