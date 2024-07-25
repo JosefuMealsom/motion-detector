@@ -4,8 +4,8 @@ from src.image_encoder import encode_image_for_web
 
 class VideoStream:
     def __init__(self, rtsp_url):
-        # self.stream = freshest_frame.FreshestFrame(cv2.VideoCapture(rtsp_url))
-        self.stream = cv2.VideoCapture(rtsp_url)
+        self.stream = freshest_frame.FreshestFrame(cv2.VideoCapture(rtsp_url))
+        #self.stream = cv2.VideoCapture(rtsp_url)
         self.current_frame = None
 
     def read_next_frame(self):

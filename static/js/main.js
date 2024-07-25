@@ -13,7 +13,7 @@ resetBgButton.addEventListener("click", () =>
   fetch("zone/reset", { method: "POST" })
 );
 
-const config = loadConfigForKey("zone");
+const config = loadConfigForKey("zone") || {};
 
 const thresholdInput = new RangeInput(
   "threshold",

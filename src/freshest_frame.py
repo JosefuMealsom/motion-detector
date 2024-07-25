@@ -46,17 +46,20 @@ class FreshestFrame(threading.Thread):
 		while self.running:
 			# block for fresh frame
 			(rv, img) = self.capture.read()
-			assert rv
-			counter += 1
+			
+			if rv: 
+				counter += 1
 
-			# publish the frame
-			with self.cond: # lock the condition for this operation
-				self.frame = img if rv else None
-				self.latestnum = counter
-				self.cond.notify_all()
+				# publish the frame
+				with self.cond: # lock the condition for this operation
+					self.frame = img if rv else None
+					self.latestnum = counter
+					self.cond.notify_all()
 
-			if self.callback:
-				self.callback(img)
+				if self.callback:
+					self.callback(img)
+			else:
+				self.capture.set(cv.CAP_PROP_POS_FRAMES, 0)
 
 	def read(self, wait=True, seqnumber=None, timeout=None):
 		# with no arguments (wait=True), it always blocks for a fresh frame
