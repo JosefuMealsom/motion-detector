@@ -135,9 +135,8 @@ class NormalAbsDiff:
                     self.time_in_zone = 0
 
                 if not self.in_frame and self.time_in_zone > self.MIN_ZONE_FRAMES:
-                    if self.on_detect_callback is not None:
-                        self.on_detect_callback(True)
                     self.in_frame = True
+                    self.on_detect_callback(True)
                 elif len(detections) == 0 and self.in_frame:
                     self.in_frame = False
                     self.on_detect_callback(False)

@@ -1,19 +1,34 @@
 from src.video_stream import VideoStream
 from src.normal_abs_diff import NormalAbsDiff
 from flask import Flask, render_template, Response, request
-from threading import Thread
+from threading import Thread, active_count
 from src.config_loader import load_config, save_config
 from flask_socketio import SocketIO
+import argparse
+from src.udp_socket import UdpSocket
+
+parser = argparse.ArgumentParser("IR motion detector")
+parser.add_argument("host", help="The host to send messages to")
+parser.add_argument("port", help="The port to send messages to", type=int)
+
+args = parser.parse_args()
+host = args.host
+port = args.port
+
+udp_socket = UdpSocket(host, port)
 
 app = Flask(__name__)
 socketio = SocketIO(app)
 #video_stream = VideoStream("rtsp://admin:P@ssw0rd@192.168.1.64:554/Streaming/channels/101")
-video_stream = VideoStream("test-output.mp4")
+video_stream = VideoStream("assets/test-output.mp4")
+# video_stream = VideoStream("color_stream.mp4")
     
 def on_detect(entered):
     if entered:
+        udp_socket.send_message("zone:entered")
         socketio.emit("entered")
     else:
+        udp_socket.send_message("zone:left")
         socketio.emit("left")
 
 
@@ -126,6 +141,6 @@ def reset_zone():
 
 
 if __name__ == "__main__":
-    socketio.run(app, debug=True)
+    socketio.run(app, debug=False)
 
 video_stream.release()
