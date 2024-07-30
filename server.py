@@ -6,22 +6,26 @@ from src.config_loader import load_config, save_config
 from flask_socketio import SocketIO
 import argparse
 from src.udp_socket import UdpSocket
+from src.mjpeg_stream import fetch_mjpeg_stream 
 
 parser = argparse.ArgumentParser("IR motion detector")
-parser.add_argument("host", help="The host to send messages to")
-parser.add_argument("port", help="The port to send messages to", type=int)
+parser.add_argument("--udp-host", help="The host to send messages to", required=True)
+parser.add_argument("--udp-port", help="The port to send messages to", type=int, required=True)
+parser.add_argument("--stream-url", "-surl", help="The url of the stream", required=True)
+parser.add_argument("--stream-user", "-suser", help="The user to log into the stream", required=True)
+parser.add_argument("--stream-password", "-spass", help="The password to log into the stream", required=True)
 
 args = parser.parse_args()
-host = args.host
-port = args.port
+host = args.udp_host
+port = args.udp_port
+stream_url = args.stream_url
+stream_user = args.stream_user
+stream_password = args.stream_password
 
 udp_socket = UdpSocket(host, port)
 
 app = Flask(__name__)
 socketio = SocketIO(app)
-#video_stream = VideoStream("rtsp://admin:P@ssw0rd@192.168.1.64:554/Streaming/channels/101")
-video_stream = VideoStream("assets/test-output.mp4")
-# video_stream = VideoStream("color_stream.mp4")
     
 def on_detect(entered):
     if entered:
@@ -40,12 +44,11 @@ if result:
 
 zone_detector.add_detect_callback(on_detect)
 
+mjpeg_stream_generator = fetch_mjpeg_stream(stream_url, stream_user, stream_password)
 
 def process_stream():
     while True:
-        success, frame = video_stream.read_next_frame()
-        if not success:
-            continue
+        frame = next(mjpeg_stream_generator)
         zone_detector.process(frame)
 
 
@@ -95,7 +98,7 @@ def index():
 
 def generate_raw_frames():
     while True:
-        success, image = video_stream.jpeg()
+        success, image = zone_detector.raw_stream()
         if success:
             yield image
 
@@ -142,5 +145,3 @@ def reset_zone():
 
 if __name__ == "__main__":
     socketio.run(app, debug=False)
-
-video_stream.release()

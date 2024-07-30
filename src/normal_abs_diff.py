@@ -20,6 +20,7 @@ class NormalAbsDiff:
     background = None
     background_needs_update = True
     cropped_image = None
+    raw_image = None
     processed_image = None
     raw_difference = None
     in_frame = False
@@ -72,6 +73,7 @@ class NormalAbsDiff:
 
     def process(self, frame):
         with self.lock:
+            self.raw_image = frame
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
             if "zoneArea" in self.zone_config:
@@ -150,6 +152,9 @@ class NormalAbsDiff:
         if self.cropped_image is None:
             return False, None
         return encode_image_for_web(self.cropped_image)
+
+    def raw_stream(self):
+        return encode_image_for_web(self.raw_image)
 
     def raw_difference_jpeg(self):
         return encode_image_for_web(self.raw_difference)
