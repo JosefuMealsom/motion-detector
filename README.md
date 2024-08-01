@@ -12,3 +12,7 @@ where the user can change parameters for the stream. The user can navigate to a 
 where they change these parameters and see the various stages of image processing.
 
 This includes being able to define a zone for detection, the threshold of differences that are detected, image scaling and others.
+
+## Other dependencies
+
+Also uses Tailwind for CSS. Run `npm install` and then `npm run create-css` to update any changes you make to the markup.
